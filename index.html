@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Lista de Churrasco</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-white mb-2">🔥 Gerador de Lista de Churrasco</h1>
+                <p class="text-white/90 text-lg">Calcule automaticamente os ingredientes para o seu churrasco perfeito!</p>
+            </div>
+
+            <!-- Controls -->
+            <div class="bg-white rounded-2xl shadow-2xl p-6 mb-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <span class="text-gray-700 font-medium text-lg">Número de pessoas:</span>
+                        <div class="flex items-center gap-3">
+                            <button onclick="adjustPeople(-1)" class="bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded-full font-bold text-xl transition-colors">-</button>
+                            <span id="peopleCount" class="text-3xl font-bold text-gray-800 min-w-[60px] text-center">1</span>
+                            <button onclick="adjustPeople(1)" class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full font-bold text-xl transition-colors">+</button>
+                        </div>
+                    </div>
+                    <button onclick="generatePrintableList()" class="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg transition-all transform hover:scale-105">
+                        📋 Gerar Lista de Compras
+                    </button>
+                    <button onclick="resetToDefaults()" class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-6 py-3 rounded-full font-semibold text-lg shadow-lg transition-all transform hover:scale-105">
+                        🔄 Restaurar Padrão
+                    </button>
+                </div>
+            </div>
+
+            <!-- Shopping List -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6" id="sectionsContainer">
+                <!-- Carnes -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <div class="flex flex-col items-start justify-between mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            🥩 Carnes
+                        </h2>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button onclick="addNewItem('meats')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
+                                + Adicionar Item
+                            </button>
+                            <button onclick="removeSection('meats', this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <div id="meatList" class="space-y-3">
+                        <!-- Items will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Acompanhamentos -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <div class="flex flex-col items-start justify-between mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            🥗 Acompanhamentos
+                        </h2>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button onclick="addNewItem('sides')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
+                                + Adicionar Item
+                            </button>
+                            <button onclick="removeSection('sides', this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <div id="sidesList" class="space-y-3">
+                        <!-- Items will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Bebidas -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <div class="flex flex-col items-start justify-between mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            🍺 Bebidas
+                        </h2>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button onclick="addNewItem('drinks')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
+                                + Adicionar Item
+                            </button>
+                            <button onclick="removeSection('drinks', this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <div id="drinksList" class="space-y-3">
+                        <!-- Items will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Extras -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <div class="flex flex-col items-start justify-between mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            🧄 Extras & Temperos
+                        </h2>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button onclick="addNewItem('extras')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
+                                + Adicionar Item
+                            </button>
+                            <button onclick="removeSection('extras', this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <div id="extrasList" class="space-y-3">
+                        <!-- Items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Section Button -->
+            <div class="text-center mt-6">
+                <button onclick="addNewSection()" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg transition-all transform hover:scale-105">
+                    ➕ Criar Nova Seção
+                </button>
+            </div>
+
+            <!-- Total Summary -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 mt-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    💰 Resumo Total
+                </h2>
+                <div id="totalSummary" class="text-lg text-gray-700">
+                    <!-- Summary will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Item -->
+    <div id="itemModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">➕ Adicionar Novo Item</h3>
+            <form id="itemForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Item</label>
+                    <input type="text" id="itemName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Ex: Alcatra, Pão Francês..." required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Quantidade por Pessoa</label>
+                    <input type="number" id="itemAmount" step="0.01" min="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Ex: 0.15 (para 150g)" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unidade</label>
+                    <select id="itemUnit" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" required>
+                        <option value="">Selecione a unidade</option>
+                        <option value="kg">kg (quilograma)</option>
+                        <option value="L">L (litro)</option>
+                        <option value="unid">unid (unidade)</option>
+                        <option value="latas">latas</option>
+                        <option value="pacotes">pacotes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Preço por Unidade (R$)</label>
+                    <input type="number" id="itemPrice" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Ex: 35.00" required>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeItemModal()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                        Adicionar Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Seção -->
+    <div id="sectionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">📦 Criar Nova Seção</h3>
+            <form id="sectionForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Seção</label>
+                    <input type="text" id="sectionName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Ex: Sobremesas, Utensílios..." required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Emoji (opcional)</label>
+                    <select id="sectionEmoji" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        <option value="📦">📦 Padrão</option>
+                        <option value="🍰">🍰 Sobremesas</option>
+                        <option value="🔧">🔧 Utensílios</option>
+                        <option value="🧊">🧊 Gelo/Refrigeração</option>
+                        <option value="🎵">🎵 Entretenimento</option>
+                        <option value="🧽">🧽 Limpeza</option>
+                        <option value="🏺">🏺 Condimentos</option>
+                        <option value="🥤">🥤 Bebidas Especiais</option>
+                        <option value="🍞">🍞 Pães</option>
+                        <option value="🧀">🧀 Queijos</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeSectionModal()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+                        Criar Seção
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPeople = 1;
+
+        // Base quantities per person
+        const baseQuantities = {
+            meats: {
+                'Picanha': { amount: 0.15, unit: 'kg', price: 65 },
+                'Fraldinha': { amount: 0.12, unit: 'kg', price: 35 },
+                'Linguiça': { amount: 0.08, unit: 'kg', price: 18 },
+                'Coração de Frango': { amount: 0.06, unit: 'kg', price: 12 },
+                'Costela': { amount: 0.2, unit: 'kg', price: 28 }
+            },
+            sides: {
+                'Pão de Alho': { amount: 1, unit: 'unid', price: 8 },
+                'Farofa': { amount: 0.05, unit: 'kg', price: 15 },
+                'Vinagrete': { amount: 0.08, unit: 'kg', price: 10 },
+                'Queijo Coalho': { amount: 0.04, unit: 'kg', price: 25 },
+                'Salada Verde': { amount: 0.06, unit: 'kg', price: 12 }
+            },
+            drinks: {
+                'Cerveja': { amount: 3, unit: 'latas', price: 4 },
+                'Refrigerante': { amount: 0.3, unit: 'L', price: 6 },
+                'Água': { amount: 0.5, unit: 'L', price: 3 },
+                'Suco': { amount: 0.2, unit: 'L', price: 8 }
+            },
+            extras: {
+                'Sal Grosso': { amount: 0.01, unit: 'kg', price: 5 },
+                'Carvão': { amount: 0.5, unit: 'kg', price: 8 },
+                'Limão': { amount: 0.5, unit: 'unid', price: 1 },
+                'Alho': { amount: 0.2, unit: 'unid', price: 2 },
+                'Guardanapos': { amount: 5, unit: 'unid', price: 0.1 }
+            }
+        };
+
+        function adjustPeople(change) {
+            const newCount = currentPeople + change;
+            currentPeople = Math.max(1, Math.min(50, newCount));
+            document.getElementById('peopleCount').textContent = currentPeople;
+            generateShoppingList();
+        }
+
+        function calculateQuantity(baseAmount, people) {
+            const total = baseAmount * people;
+            if (total < 1 && baseAmount < 1) {
+                return Math.ceil(total * 10) / 10; // Round to 1 decimal for small quantities
+            }
+            return Math.ceil(total);
+        }
+
+        function formatQuantity(amount, unit) {
+            if (unit === 'kg' && amount < 1) {
+                return `${(amount * 1000).toFixed(0)}g`;
+            }
+            if (unit === 'L' && amount < 1) {
+                return `${(amount * 1000).toFixed(0)}ml`;
+            }
+            return `${amount} ${unit}`;
+        }
+
+function createItemElement(name, quantity, unit, price, checked = false) {
+    const totalPrice = (price * quantity).toFixed(2);
+    const itemId = name.replace(/\s+/g, '').toLowerCase();
+    const priceId = `price_${itemId}`;
+            
+            return `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3">
+            <div class="flex items-center gap-3 flex-1">
+                <input type="checkbox" id="${itemId}" ${checked ? 'checked' : ''} 
+                       class="w-5 h-5 text-green-500 rounded focus:ring-green-400 flex-shrink-0">
+                <label for="${itemId}" class="flex-1 cursor-pointer">
+                    <span class="font-medium text-gray-800 text-sm sm:text-base">${name}</span>
+                    <div class="text-xs sm:text-sm text-gray-600">${formatQuantity(quantity, unit)}</div>
+                </label>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 justify-between sm:justify-end">
+                <div class="text-center sm:text-right">
+                    <div class="text-xs text-gray-500">R$ por ${unit}</div>
+                    <input type="number" id="${priceId}" value="${price.toFixed(2)}" 
+                           onchange="updatePrice('${name}', this.value)" 
+                           class="w-14 sm:w-16 text-xs sm:text-sm text-center border border-gray-300 rounded px-1 py-0.5 focus:border-orange-400 focus:outline-none"
+                           step="0.01" min="0">
+                </div>
+                <div class="text-center sm:text-right">
+                    <div class="text-xs text-gray-500">Total</div>
+                    <div class="font-semibold text-green-600 text-sm sm:text-base" id="total_${itemId}">R$ ${totalPrice}</div>
+                </div>
+                <button onclick="removeItem('${getCurrentSectionKey(name)}', '${name}', event)" 
+                        class="text-red-500 hover:text-red-700 text-xs p-1 rounded">
+                    🗑️
+                </button>
+                </div>
+        </div>
+    `;
+
+            // Salvar dados
+        function saveToLocalStorage() {
+            localStorage.setItem('churrascoData', JSON.stringify({
+                baseQuantities,
+                currentPeople,
+                customSectionCounter
+            }));
+        }
+        // Carregar dados
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('churrascoData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.assign(baseQuantities, data.baseQuantities);
+                currentPeople = data.currentPeople || 1;
+                customSectionCounter = data.customSectionCounter || 0;
+                document.getElementById('peopleCount').textContent = currentPeople;
+            }
+        }
+        // Chamar ao carregar a página
+        window.addEventListener('load', loadFromLocalStorage);
+        // Salvar sempre que houver mudanças
+        function generateShoppingList() {
+            // ... código existente ...
+            saveToLocalStorage();
+        }
+        }
+
+
+function getCurrentSectionKey(itemName) {
+    for (const [key, items] of Object.entries(baseQuantities)) {
+        if (items[itemName]) {
+            return key;
+        }
+    }
+    return '';
+}
+
+        function updatePrice(itemName, newPrice) {
+            // Find the item in baseQuantities and update its price
+            const price = parseFloat(newPrice) || 0;
+            
+            for (const category of Object.values(baseQuantities)) {
+                if (category[itemName]) {
+                    category[itemName].price = price;
+                    break;
+                }
+            }
+            
+            // Recalculate and update the display
+            updateTotalForItem(itemName, price);
+            updateTotalSummary();
+        }
+
+        function updateTotalForItem(itemName, price) {
+            const itemId = itemName.replace(/\s+/g, '').toLowerCase();
+            const totalElement = document.getElementById(`total_${itemId}`);
+            
+            if (totalElement) {
+                // Find the item data to get quantity
+                for (const category of Object.values(baseQuantities)) {
+                    if (category[itemName]) {
+                        const quantity = calculateQuantity(category[itemName].amount, currentPeople);
+                        const total = (price * quantity).toFixed(2);
+                        totalElement.textContent = `R$ ${total}`;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function updateTotalSummary() {
+            let totalCost = 0;
+            
+            // Calculate total cost from all categories
+            for (const category of Object.values(baseQuantities)) {
+                for (const [name, data] of Object.entries(category)) {
+                    const quantity = calculateQuantity(data.amount, currentPeople);
+                    totalCost += data.price * quantity;
+                }
+            }
+            
+            const costPerPerson = (totalCost / currentPeople).toFixed(2);
+            const totalSummary = document.getElementById('totalSummary');
+            totalSummary.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">👥 ${currentPeople}</div>
+                        <div class="text-sm text-gray-600">Pessoas</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">R$ ${totalCost.toFixed(2)}</div>
+                        <div class="text-sm text-gray-600">Total Estimado</div>
+                    </div>
+                    <div class="text-center p-4 bg-orange-50 rounded-lg">
+                        <div class="text-2xl font-bold text-orange-600">R$ ${costPerPerson}</div>
+                        <div class="text-sm text-gray-600">Por Pessoa</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateShoppingList() {
+            let totalCost = 0;
+
+            // Generate meat list
+            const meatList = document.getElementById('meatList');
+            let meatHtml = '';
+            if (Object.keys(baseQuantities.meats).length === 0) {
+                meatHtml = `
+                    <div class="text-gray-500 text-center py-4">
+                        Seção vazia. 
+                        <button onclick="restoreDefaultItems('meats')" class="text-orange-500 hover:text-orange-600 underline ml-1">
+                            Restaurar itens padrão
+                        </button>
+                    </div>
+                `;
+            } else {
+                for (const [name, data] of Object.entries(baseQuantities.meats)) {
+                    const quantity = calculateQuantity(data.amount, currentPeople);
+                    const cost = data.price * quantity;
+                    totalCost += cost;
+                    meatHtml += createItemElement(name, quantity, data.unit, data.price);
+                }
+            }
+            meatList.innerHTML = meatHtml;
+
+            // Generate sides list
+            const sidesList = document.getElementById('sidesList');
+            let sidesHtml = '';
+            if (Object.keys(baseQuantities.sides).length === 0) {
+                sidesHtml = `
+                    <div class="text-gray-500 text-center py-4">
+                        Seção vazia. 
+                        <button onclick="restoreDefaultItems('sides')" class="text-orange-500 hover:text-orange-600 underline ml-1">
+                            Restaurar itens padrão
+                        </button>
+                    </div>
+                `;
+            } else {
+                for (const [name, data] of Object.entries(baseQuantities.sides)) {
+                    const quantity = calculateQuantity(data.amount, currentPeople);
+                    const cost = data.price * quantity;
+                    totalCost += cost;
+                    sidesHtml += createItemElement(name, quantity, data.unit, data.price);
+                }
+            }
+            sidesList.innerHTML = sidesHtml;
+
+            // Generate drinks list
+            const drinksList = document.getElementById('drinksList');
+            let drinksHtml = '';
+            if (Object.keys(baseQuantities.drinks).length === 0) {
+                drinksHtml = `
+                    <div class="text-gray-500 text-center py-4">
+                        Seção vazia. 
+                        <button onclick="restoreDefaultItems('drinks')" class="text-orange-500 hover:text-orange-600 underline ml-1">
+                            Restaurar itens padrão
+                        </button>
+                    </div>
+                `;
+            } else {
+                for (const [name, data] of Object.entries(baseQuantities.drinks)) {
+                    const quantity = calculateQuantity(data.amount, currentPeople);
+                    const cost = data.price * quantity;
+                    totalCost += cost;
+                    drinksHtml += createItemElement(name, quantity, data.unit, data.price);
+                }
+            }
+            drinksList.innerHTML = drinksHtml;
+
+            // Generate extras list
+            const extrasList = document.getElementById('extrasList');
+            let extrasHtml = '';
+            if (Object.keys(baseQuantities.extras).length === 0) {
+                extrasHtml = `
+                    <div class="text-gray-500 text-center py-4">
+                        Seção vazia. 
+                        <button onclick="restoreDefaultItems('extras')" class="text-orange-500 hover:text-orange-600 underline ml-1">
+                            Restaurar itens padrão
+                        </button>
+                    </div>
+                `;
+            } else {
+                for (const [name, data] of Object.entries(baseQuantities.extras)) {
+                    const quantity = calculateQuantity(data.amount, currentPeople);
+                    const cost = data.price * quantity;
+                    totalCost += cost;
+                    extrasHtml += createItemElement(name, quantity, data.unit, data.price);
+                }
+            }
+            extrasList.innerHTML = extrasHtml;
+
+            // Generate custom sections
+            for (const [categoryKey, categoryData] of Object.entries(baseQuantities)) {
+                if (categoryKey.startsWith('custom')) {
+                    const listElement = document.getElementById(`${categoryKey}List`);
+                    if (listElement) {
+                        let categoryHtml = '';
+                        
+                        if (Object.keys(categoryData).length === 0) {
+                            categoryHtml = '<div class="text-gray-500 text-center py-4">Clique em "Adicionar Item" para começar</div>';
+                        } else {
+                            for (const [name, data] of Object.entries(categoryData)) {
+                                const quantity = calculateQuantity(data.amount, currentPeople);
+                                const cost = data.price * quantity;
+                                totalCost += cost;
+                                categoryHtml += createItemElement(name, quantity, data.unit, data.price);
+                            }
+                        }
+                        
+                        listElement.innerHTML = categoryHtml;
+                    }
+                }
+            }
+
+            // Update total summary
+            updateTotalSummary();
+        }
+
+        function generatePrintableList() {
+            // Create a new window with the shopping list
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            
+            let listContent = `
+                <html>
+                <head>
+                    <title>Lista de Compras - Churrasco para ${currentPeople} pessoas</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #d97706; text-align: center; }
+                        h2 { color: #374151; border-bottom: 2px solid #d97706; padding-bottom: 5px; }
+                        .category { margin-bottom: 30px; }
+                        .item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+                        .item:last-child { border-bottom: none; }
+                        .checkbox { margin-right: 10px; }
+                        .total { background: #f3f4f6; padding: 15px; border-radius: 8px; margin-top: 20px; }
+                        @media print { 
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>🔥 Lista de Compras - Churrasco</h1>
+                    <p style="text-align: center; font-size: 18px; color: #6b7280;">Para ${currentPeople} pessoas</p>
+            `;
+
+            // Add each category dynamically
+            const categoryNames = {
+                'meats': '🥩 Carnes',
+                'sides': '🥗 Acompanhamentos', 
+                'drinks': '🍺 Bebidas',
+                'extras': '🧄 Extras & Temperos'
+            };
+            
+            const categories = [];
+            for (const [key, data] of Object.entries(baseQuantities)) {
+                // Only include sections that have items or are default sections
+                if (Object.keys(data).length > 0 || ['meats', 'sides', 'drinks', 'extras'].includes(key)) {
+                    const name = categoryNames[key] || `📦 ${key.replace('custom', 'Seção ')}`;
+                    categories.push({ name, data });
+                }
+            }
+
+            let totalCost = 0;
+
+            categories.forEach(category => {
+                listContent += `<div class="category"><h2>${category.name}</h2>`;
+                
+                for (const [name, data] of Object.entries(category.data)) {
+                    const quantity = calculateQuantity(data.amount, currentPeople);
+                    const cost = data.price * quantity;
+                    totalCost += cost;
+                    
+                    listContent += `
+                        <div class="item">
+                            <div>
+                                <input type="checkbox" class="checkbox"> 
+                                <strong>${name}</strong> - ${formatQuantity(quantity, data.unit)}
+                            </div>
+                            <div>R$ ${cost.toFixed(2)}</div>
+                        </div>
+                    `;
+                }
+                listContent += '</div>';
+            });
+
+            // Add total
+            const costPerPerson = (totalCost / currentPeople).toFixed(2);
+            listContent += `
+                <div class="total">
+                    <h2>💰 Resumo Total</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                        <div style="text-align: center;">
+                            <strong>👥 Pessoas:</strong> ${currentPeople}
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>💵 Total:</strong> R$ ${totalCost.toFixed(2)}
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>👤 Por Pessoa:</strong> R$ ${costPerPerson}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="no-print" style="text-align: center; margin-top: 30px;">
+                    <button onclick="window.print()" style="background: #d97706; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+                        🖨️ Imprimir Lista
+                    </button>
+                    <button onclick="window.close()" style="background: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-left: 10px;">
+                        ❌ Fechar
+                    </button>
+                </div>
+                
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(listContent);
+            printWindow.document.close();
+        }
+
+        // Counter for custom sections
+        let customSectionCounter = 0;
+        let currentCategory = '';
+
+        // Modal functions for adding items
+        function addNewItem(category) {
+            currentCategory = category;
+            document.getElementById('itemModal').classList.remove('hidden');
+            document.getElementById('itemModal').classList.add('flex');
+            document.getElementById('itemName').focus();
+        }
+
+        function closeItemModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+            document.getElementById('itemModal').classList.remove('flex');
+            document.getElementById('itemForm').reset();
+        }
+
+        function resetToDefaults() {
+    if (confirm('Isso irá restaurar todas as configurações padrão. Continuar?')) {
+        // Restaurar quantidades padrão
+        Object.assign(baseQuantities, {
+            meats: {
+                'Picanha': { amount: 0.15, unit: 'kg', price: 65 },
+                'Fraldinha': { amount: 0.12, unit: 'kg', price: 35 },
+                'Linguiça': { amount: 0.08, unit: 'kg', price: 18 },
+                'Coração de Frango': { amount: 0.06, unit: 'kg', price: 12 },
+                'Costela': { amount: 0.2, unit: 'kg', price: 28 }
+            },
+            sides: {
+                'Pão de Alho': { amount: 1, unit: 'unid', price: 8 },
+                'Farofa': { amount: 0.05, unit: 'kg', price: 15 },
+                'Vinagrete': { amount: 0.08, unit: 'kg', price: 10 },
+                'Queijo Coalho': { amount: 0.04, unit: 'kg', price: 25 },
+                'Salada Verde': { amount: 0.06, unit: 'kg', price: 12 }
+            },
+            drinks: {
+                'Cerveja': { amount: 3, unit: 'latas', price: 4 },
+                'Refrigerante': { amount: 0.3, unit: 'L', price: 6 },
+                'Água': { amount: 0.5, unit: 'L', price: 3 },
+                'Suco': { amount: 0.2, unit: 'L', price: 8 }
+            },
+            extras: {
+                'Sal Grosso': { amount: 0.01, unit: 'kg', price: 5 },
+                'Carvão': { amount: 0.5, unit: 'kg', price: 8 },
+                'Limão': { amount: 0.5, unit: 'unid', price: 1 },
+                'Alho': { amount: 0.2, unit: 'unid', price: 2 },
+                'Guardanapos': { amount: 5, unit: 'unid', price: 0.1 }
+            }
+        });
+        
+        currentPeople = 1;
+        customSectionCounter = 0;
+        document.getElementById('peopleCount').textContent = currentPeople;
+        
+        // Remover seções customizadas do DOM
+        document.querySelectorAll('[id$="List"]').forEach(element => {
+            if (element.id.startsWith('custom')) {
+                element.closest('.bg-white.rounded-2xl').remove();
+            }
+        });
+        
+        generateShoppingList();
+        localStorage.removeItem('churrascoData');
+    }
+}
+
+
+        // Modal functions for adding sections
+        function addNewSection() {
+            document.getElementById('sectionModal').classList.remove('hidden');
+            document.getElementById('sectionModal').classList.add('flex');
+            document.getElementById('sectionName').focus();
+        }
+
+        function closeSectionModal() {
+            document.getElementById('sectionModal').classList.add('hidden');
+            document.getElementById('sectionModal').classList.remove('flex');
+            document.getElementById('sectionForm').reset();
+        }
+
+        // Handle item form submission
+        document.getElementById('itemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const itemName = document.getElementById('itemName').value.trim();
+            const amount = parseFloat(document.getElementById('itemAmount').value);
+            const unit = document.getElementById('itemUnit').value;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            
+            if (itemName && amount > 0 && unit && price >= 0) {
+                if (baseQuantities[currentCategory]) {
+                    baseQuantities[currentCategory][itemName] = {
+                        amount: amount,
+                        unit: unit,
+                        price: price
+                    };
+                    generateShoppingList();
+                    closeItemModal();
+                }
+            }
+        });
+
+        // Handle section form submission
+        document.getElementById('sectionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const sectionName = document.getElementById('sectionName').value.trim();
+            const emoji = document.getElementById('sectionEmoji').value;
+            
+            if (sectionName) {
+                customSectionCounter++;
+                const sectionKey = `custom${customSectionCounter}`;
+                
+                // Add to baseQuantities
+                baseQuantities[sectionKey] = {};
+                
+                // Create the HTML for the new section
+                const sectionsContainer = document.getElementById('sectionsContainer');
+                const newSectionHtml = `
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                                ${emoji} ${sectionName}
+                            </h2>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <button onclick="addNewItem('${sectionKey}')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
+                                    + Adicionar Item
+                                </button>
+                                <button onclick="removeSection('${sectionKey}', this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        <div id="${sectionKey}List" class="space-y-3">
+                            <div class="text-gray-500 text-center py-4">Clique em "Adicionar Item" para começar</div>
+                        </div>
+                    </div>
+                `;
+                
+                sectionsContainer.insertAdjacentHTML('beforeend', newSectionHtml);
+                generateShoppingList();
+                closeSectionModal();
+            }
+        });
+
+        
+        function removeSection(sectionKey, buttonElement) {
+    if (confirm('Tem certeza que deseja remover esta seção?')) {
+        // Remove do objeto baseQuantities
+        delete baseQuantities[sectionKey];
+        
+        // Remove o elemento HTML
+        const sectionElement = buttonElement.closest('.bg-white.rounded-2xl');
+        if (sectionElement) {
+            sectionElement.remove();
+        }
+        
+        // Atualiza o resumo total
+        updateTotalSummary();
+    }
+}
+    if (baseQuantities[sectionKey] && baseQuantities[sectionKey][itemName]) {
+        delete baseQuantities[sectionKey][itemName]; // remove o item
+
+        // Se a seção ficou vazia, remove a seção também
+        if (Object.keys(baseQuantities[sectionKey]).length === 0) {
+            delete baseQuantities[sectionKey];
+        }
+
+        generateShoppingList(); // atualiza a lista
+    }
+
+function removeItem(sectionKey, itemName, event) {
+    event.stopPropagation();
+    if (confirm(`Remover "${itemName}" da lista?`)) {
+        delete baseQuantities[sectionKey][itemName];
+        generateShoppingList();
+    }
+}
+
+
+        // Close modals when clicking outside
+        document.getElementById('itemModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeItemModal();
+            }
+        });
+
+        document.getElementById('sectionModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSectionModal();
+            }
+        });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeItemModal();
+                closeSectionModal();
+            }
+        });
+
+        // Function to restore default items for a section
+        function restoreDefaultItems(sectionKey) {
+            const defaultItems = {
+                meats: {
+                    'Picanha': { amount: 0.15, unit: 'kg', price: 65 },
+                    'Fraldinha': { amount: 0.12, unit: 'kg', price: 35 },
+                    'Linguiça': { amount: 0.08, unit: 'kg', price: 18 },
+                    'Coração de Frango': { amount: 0.06, unit: 'kg', price: 12 },
+                    'Costela': { amount: 0.2, unit: 'kg', price: 28 }
+                },
+                sides: {
+                    'Pão de Alho': { amount: 1, unit: 'unid', price: 8 },
+                    'Farofa': { amount: 0.05, unit: 'kg', price: 15 },
+                    'Vinagrete': { amount: 0.08, unit: 'kg', price: 10 },
+                    'Queijo Coalho': { amount: 0.04, unit: 'kg', price: 25 },
+                    'Salada Verde': { amount: 0.06, unit: 'kg', price: 12 }
+                },
+                drinks: {
+                    'Cerveja': { amount: 3, unit: 'latas', price: 4 },
+                    'Refrigerante': { amount: 0.3, unit: 'L', price: 6 },
+                    'Água': { amount: 0.5, unit: 'L', price: 3 },
+                    'Suco': { amount: 0.2, unit: 'L', price: 8 }
+                },
+                extras: {
+                    'Sal Grosso': { amount: 0.01, unit: 'kg', price: 5 },
+                    'Carvão': { amount: 0.5, unit: 'kg', price: 8 },
+                    'Limão': { amount: 0.5, unit: 'unid', price: 1 },
+                    'Alho': { amount: 0.2, unit: 'unid', price: 2 },
+                    'Guardanapos': { amount: 5, unit: 'unid', price: 0.1 }
+                }
+            };
+
+            if (defaultItems[sectionKey]) {
+                baseQuantities[sectionKey] = { ...defaultItems[sectionKey] };
+                generateShoppingList();
+            }
+        }
+
+        // Initialize the shopping list
+        generateShoppingList();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'974b286002f50094',t:'MTc1NjEyNTYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
